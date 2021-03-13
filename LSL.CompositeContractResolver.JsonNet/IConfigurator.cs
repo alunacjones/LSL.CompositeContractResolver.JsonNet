@@ -13,6 +13,6 @@ namespace LSL.CompositeContractResolver.JsonNet
         /// <param name="createPropertyContext"></param>
         /// <param name="next"></param>
         /// <returns></returns>
-        IContractResolverContext<TJsonEntity> Configure(IContractResolverContext<TJsonEntity> createPropertyContext, Func<IContractResolverContext<TJsonEntity>> next);
+        TJsonEntity Configure(IContractResolverContext<TJsonEntity> createPropertyContext, Func<TJsonEntity> next);
     }
 }

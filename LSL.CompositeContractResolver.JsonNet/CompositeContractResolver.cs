@@ -15,8 +15,8 @@ namespace LSL.CompositeContractResolver.JsonNet
     /// </summary>
     public sealed class CompositeContractResolver : DefaultContractResolver
     {
-        private readonly Lazy<Func<CreatePropertyContractResolverContext, CreatePropertyContractResolverContext>> _createPropertyConfigurator;
-        private readonly Lazy<Func<CreateContractContractResolverContext, CreateContractContractResolverContext>> _createContractConfigurator;
+        private readonly Lazy<Func<CreatePropertyContractResolverContext, JsonProperty>> _createPropertyConfigurator;
+        private readonly Lazy<Func<CreateContractContractResolverContext, JsonContract>> _createContractConfigurator;
         private readonly CompositeContractResolverContext _context;
         private readonly ICompositeHandlerFactory _compositeHandlerFactory;
 
@@ -29,13 +29,13 @@ namespace LSL.CompositeContractResolver.JsonNet
             _createContractConfigurator = CreateLazyCompoundConfigurator<CreateContractContractResolverContext, JsonContract, ICreateContractConfigurator>();
         }
 
-        private Lazy<Func<TContext, TContext>> CreateLazyCompoundConfigurator<TContext, TJsonEntity, TConfigurator>() 
+        private Lazy<Func<TContext, TJsonEntity>> CreateLazyCompoundConfigurator<TContext, TJsonEntity, TConfigurator>() 
             where TContext : IContractResolverContext<TJsonEntity>
             where TConfigurator : IConfigurator<TJsonEntity>
         { 
             return new Lazy<Func<TContext, TContext>>(() => _compositeHandlerFactory
                 .Create(ResolveContextualConfigurators<TConfigurator, TJsonEntity>()
-                    .Select(i => new HandlerDelegate<TContext, TContext>(i.Configure))
+                    .Select(i => new HandlerDelegate<TContext, TJsonEntity>(i.Configure))
                 )
             );
         }
@@ -49,7 +49,7 @@ namespace LSL.CompositeContractResolver.JsonNet
                     memberSerialization, 
                     member as PropertyInfo
                 )
-            ).ReturnValue;
+            );
 
         /// <inheritdoc/>
         protected override JsonContract CreateContract(Type objectType) =>
@@ -58,7 +58,7 @@ namespace LSL.CompositeContractResolver.JsonNet
                     objectType, 
                     base.CreateContract(objectType)
                 )
-            ).ReturnValue;
+            );
 
         private IEnumerable<TConfigurator> ResolveContextualConfigurators<TConfigurator, TJsonEntity>()
             where TConfigurator : IConfigurator<TJsonEntity>
