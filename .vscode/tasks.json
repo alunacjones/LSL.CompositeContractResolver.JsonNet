@@ -5,15 +5,14 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet build",
-            "type": "shell",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "presentation": {
-                "reveal": "silent"
-            },
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/LSL.CompositeContractResolver.JsonNet.Tests/LSL.CompositeContractResolver.JsonNet.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
             "problemMatcher": "$msCompile"
         },
         {
@@ -32,6 +31,31 @@
                 "/p:CoverletOutput=../lcov"
             ],
             "problemMatcher": "$msCompile"
-        },        
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/LSL.CompositeContractResolver.JsonNet.Tests/LSL.CompositeContractResolver.JsonNet.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "run",
+                "${workspaceFolder}/LSL.CompositeContractResolver.JsonNet.Tests/LSL.CompositeContractResolver.JsonNet.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
     ]
 }

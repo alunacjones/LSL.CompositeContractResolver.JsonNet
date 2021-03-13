@@ -5,56 +5,82 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using LSL.CompositeHandlers;
+using static LSL.CompositeContractResolver.JsonNet.CompositeContractResolverContext;
+using LSL.CompositeContractResolver.JsonNet.Configurators;
 
 namespace LSL.CompositeContractResolver.JsonNet
 {
     /// <summary>
     /// 
     /// </summary>
-    public class CompositeContractResolver : DefaultContractResolver
+    public sealed class CompositeContractResolver : DefaultContractResolver
     {
-        private readonly Lazy<Func<IEnumerable<IConfigurator>>> _createPropertyConfigurator;
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="configurators"></param>
-        /// <param name="compositeHandlerFactory"></param>
-        public CompositeContractResolver(IEnumerable<IConfigurator> configurators, ICompositeHandlerFactory compositeHandlerFactory)
+        private readonly Lazy<Func<CreatePropertyContractResolverContext, CreatePropertyContractResolverContext>> _createPropertyConfigurator;
+        private readonly Lazy<Func<CreateContractContractResolverContext, CreateContractContractResolverContext>> _createContractConfigurator;
+        private readonly CompositeContractResolverContext _context;
+        private readonly ICompositeHandlerFactory _compositeHandlerFactory;
+
+        internal CompositeContractResolver(CompositeContractResolverContext context, ICompositeHandlerFactory compositeHandlerFactory)
         {
-            _createPropertyConfigurator = new Lazy<Func<IEnumerable<IConfigurator>>>(() => compositeHandlerFactory
-                .Create(ResolveContextualConfigurators<IPropertyConfigurator>()
-                    .Select(new HandlerDelegate<JsonProperty, JsonProperty>(i => i.Configure))))
+            _context = context;
+            _compositeHandlerFactory = compositeHandlerFactory;
+
+            _createPropertyConfigurator = CreateLazyCompoundConfigurator<CreatePropertyContractResolverContext, JsonProperty, IPropertyConfigurator>();
+            _createContractConfigurator = CreateLazyCompoundConfigurator<CreateContractContractResolverContext, JsonContract, ICreateContractConfigurator>();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="member"></param>
-        /// <param name="memberSerialization"></param>
-        /// <returns></returns>
-        // protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) =>
-        //     _createPropertyConfigurator.Value(base.CreateProperty(member, memberSerialization));
+        private Lazy<Func<TContext, TContext>> CreateLazyCompoundConfigurator<TContext, TJsonEntity, TConfigurator>() 
+            where TContext : IContractResolverContext<TJsonEntity>
+            where TConfigurator : IConfigurator<TJsonEntity>
+        { 
+            return new Lazy<Func<TContext, TContext>>(() => _compositeHandlerFactory
+                .Create(ResolveContextualConfigurators<TConfigurator, TJsonEntity>()
+                    .Select(i => new HandlerDelegate<TContext, TContext>(i.Configure))
+                )
+            );
+        }
 
-        private IEnumerable<T> ResolveContextualConfigurators<T>()
-            where T : IConfigurator
+        /// <inheritdoc/>
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) =>
+            _createPropertyConfigurator.Value(
+                new CreatePropertyContractResolverContext(
+                    base.CreateProperty(member, memberSerialization), 
+                    member, 
+                    memberSerialization, 
+                    member as PropertyInfo
+                )
+            ).ReturnValue;
+
+        /// <inheritdoc/>
+        protected override JsonContract CreateContract(Type objectType) =>
+            _createContractConfigurator.Value(
+                new CreateContractContractResolverContext(
+                    objectType, 
+                    base.CreateContract(objectType)
+                )
+            ).ReturnValue;
+
+        private IEnumerable<TConfigurator> ResolveContextualConfigurators<TConfigurator, TJsonEntity>()
+            where TConfigurator : IConfigurator<TJsonEntity>
         {
-            IEnumerable<T> Resolve(IEnumerable<T> c)
+            IEnumerable<ConfiguratorAndChildContext> FilterForType(IEnumerable<ConfiguratorAndChildContext> configurators) => 
+                configurators.Where(co => co.Configurator is IConfigurator<TJsonEntity>);
+
+            IEnumerable<TConfigurator> Resolve(IEnumerable<ConfiguratorAndChildContext> c)
             {
                 foreach (var item in c)
                 {
-                    yield return item;
-                    if (item.ScopedConfigurators != null)
+                    yield return (TConfigurator)item.Configurator;
+                    
+                    var childItems = Resolve(FilterForType(item.ChildContext.Configurators));
+                    foreach (var childItem in childItems)
                     {
-                        var childItems = Resolve(item.ScopedConfigurators.OfType<T>());
-                        foreach (var childItem in childItems)
-                        {
-                            yield return childItem;
-                        }
+                        yield return childItem;
                     }
                 }
             }
 
-            return Resolve(_configurators.OfType<T>());
+            return Resolve(FilterForType(_context.Configurators));
         }
     }
 }

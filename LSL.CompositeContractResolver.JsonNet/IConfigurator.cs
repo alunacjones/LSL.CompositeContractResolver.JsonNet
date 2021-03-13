@@ -1,16 +1,18 @@
-using System.Collections.Generic;
+using System;
 
 namespace LSL.CompositeContractResolver.JsonNet
 {
     /// <summary>
     /// 
     /// </summary>
-    public interface IConfigurator
+    public interface IConfigurator<TJsonEntity>
     {
         /// <summary>
         /// 
         /// </summary>
-        /// <value></value>
-        IEnumerable<IConfigurator> ScopedConfigurators { get; }
+        /// <param name="createPropertyContext"></param>
+        /// <param name="next"></param>
+        /// <returns></returns>
+        IContractResolverContext<TJsonEntity> Configure(IContractResolverContext<TJsonEntity> createPropertyContext, Func<IContractResolverContext<TJsonEntity>> next);
     }
 }
