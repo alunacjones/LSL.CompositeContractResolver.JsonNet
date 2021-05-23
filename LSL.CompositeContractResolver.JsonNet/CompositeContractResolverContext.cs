@@ -15,7 +15,7 @@ namespace LSL.CompositeContractResolver.JsonNet
 
         internal List<ConfiguratorAndChildContext> Configurators { get; }
 
-        public ICompositeContractResolverContext AddConfigurator(object contractResolverConfigurator, Action<ICompositeContractResolverContext> configurator = null)
+        public ICompositeContractResolverContext AddResolver(BaseResolver contractResolverConfigurator, Action<ICompositeContractResolverContext> configurator = null)
         {
             var childContext = new CompositeContractResolverContext();
             configurator?.Invoke(childContext);

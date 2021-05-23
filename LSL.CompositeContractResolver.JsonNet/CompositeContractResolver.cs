@@ -25,16 +25,16 @@ namespace LSL.CompositeContractResolver.JsonNet
             _context = context;
             _compositeHandlerFactory = compositeHandlerFactory;
 
-            _createPropertyConfigurator = CreateLazyCompoundConfigurator<CreatePropertyContractResolverContext, JsonProperty, IPropertyConfigurator>();
+            _createPropertyConfigurator = CreateLazyCompoundConfigurator<CreatePropertyContractResolverContext, JsonProperty, ICreatePropertyConfigurator>();
             _createContractConfigurator = CreateLazyCompoundConfigurator<CreateContractContractResolverContext, JsonContract, ICreateContractConfigurator>();
         }
 
         private Lazy<Func<TContext, TJsonEntity>> CreateLazyCompoundConfigurator<TContext, TJsonEntity, TConfigurator>() 
             where TContext : IContractResolverContext<TJsonEntity>
-            where TConfigurator : IConfigurator<TJsonEntity>
+            where TConfigurator : IConfigurator<TContext, TJsonEntity>
         { 
-            return new Lazy<Func<TContext, TContext>>(() => _compositeHandlerFactory
-                .Create(ResolveContextualConfigurators<TConfigurator, TJsonEntity>()
+            return new Lazy<Func<TContext, TJsonEntity>>(() => _compositeHandlerFactory
+                .Create(ResolveContextualConfigurators<TContext, TConfigurator, TJsonEntity>()
                     .Select(i => new HandlerDelegate<TContext, TJsonEntity>(i.Configure))
                 )
             );
@@ -60,11 +60,12 @@ namespace LSL.CompositeContractResolver.JsonNet
                 )
             );
 
-        private IEnumerable<TConfigurator> ResolveContextualConfigurators<TConfigurator, TJsonEntity>()
-            where TConfigurator : IConfigurator<TJsonEntity>
+        private IEnumerable<TConfigurator> ResolveContextualConfigurators<TContext, TConfigurator, TJsonEntity>()
+            where TConfigurator : IConfigurator<TContext, TJsonEntity>
+            where TContext: IContractResolverContext<TJsonEntity>
         {
             IEnumerable<ConfiguratorAndChildContext> FilterForType(IEnumerable<ConfiguratorAndChildContext> configurators) => 
-                configurators.Where(co => co.Configurator is IConfigurator<TJsonEntity>);
+                configurators.Where(co => co.Configurator is IConfigurator<TContext, TJsonEntity>);
 
             IEnumerable<TConfigurator> Resolve(IEnumerable<ConfiguratorAndChildContext> c)
             {

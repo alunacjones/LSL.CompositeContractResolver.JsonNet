@@ -5,7 +5,8 @@ namespace LSL.CompositeContractResolver.JsonNet
     /// <summary>
     /// 
     /// </summary>
-    public interface IConfigurator<TJsonEntity>
+    public interface IConfigurator<TContext, TJsonEntity>
+        where TContext : IContractResolverContext<TJsonEntity>
     {
         /// <summary>
         /// 
@@ -13,6 +14,6 @@ namespace LSL.CompositeContractResolver.JsonNet
         /// <param name="createPropertyContext"></param>
         /// <param name="next"></param>
         /// <returns></returns>
-        TJsonEntity Configure(IContractResolverContext<TJsonEntity> createPropertyContext, Func<TJsonEntity> next);
+        TJsonEntity Configure(TContext createPropertyContext, Func<TJsonEntity> next);
     }
 }

@@ -6,7 +6,7 @@ namespace LSL.CompositeContractResolver.JsonNet.Configurators
     /// <summary>
     /// 
     /// </summary>
-    public interface IPropertyConfigurator : IConfigurator<JsonProperty>
+    public interface ICreatePropertyConfigurator : IConfigurator<CreatePropertyContractResolverContext, JsonProperty>
     {
     }
 }
