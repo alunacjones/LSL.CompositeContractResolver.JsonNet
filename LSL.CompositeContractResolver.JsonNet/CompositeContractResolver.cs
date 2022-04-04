@@ -13,7 +13,7 @@ namespace LSL.CompositeContractResolver.JsonNet
     /// <summary>
     /// 
     /// </summary>
-    public sealed class CompositeContractResolver : DefaultContractResolver
+    public sealed class CompositeContractResolver : DefaultContractResolver, IBaseResolver
     {
         private readonly Lazy<Func<CreatePropertyContractResolverContext, JsonProperty>> _createPropertyConfigurator;
         private readonly Lazy<Func<CreateContractContractResolverContext, JsonContract>> _createContractConfigurator;

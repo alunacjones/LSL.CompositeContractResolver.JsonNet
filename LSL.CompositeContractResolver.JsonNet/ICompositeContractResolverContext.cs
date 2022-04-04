@@ -14,6 +14,6 @@ namespace LSL.CompositeContractResolver.JsonNet
         /// <param name="resolver"></param>
         /// <param name="configurator"></param>
         /// <returns></returns>
-        ICompositeContractResolverContext AddResolver(BaseResolver resolver, Action<ICompositeContractResolverContext> configurator = null);
+        ICompositeContractResolverContext AddResolver(IBaseResolver resolver, Action<ICompositeContractResolverContext> configurator = null);
     }
 }

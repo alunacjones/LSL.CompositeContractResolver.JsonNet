@@ -4,4 +4,4 @@
 
 # LSL.CompositeContractResolver.JsonNet
 
-Provide package documentation here.
+**This is a Work in Progress and not yet in a stable state for release**
